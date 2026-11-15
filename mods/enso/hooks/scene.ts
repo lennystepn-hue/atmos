@@ -1,6 +1,6 @@
 // The Ensō scene: an ink-wash garden, drawn from a focus sitting and what Claude is doing.
 
-import { frame, num, rng } from './kit'
+import { along, frame, num, rng } from './kit'
 import type { EnsoView, Scheme } from '../types'
 
 const DAY = {
@@ -44,7 +44,7 @@ const CSS = [
   '@keyframes fall{from{transform:translate(0,-70px) rotate(0)}to{transform:translate(var(--x),1090px) rotate(var(--r))}}',
   // The circle: whole when nothing is being timed, painted stroke by stroke during a sitting.
   '.enso{stroke-dasharray:100;stroke-dashoffset:5}',
-  '.painting .enso{animation:paint var(--n) linear var(--e) 1 both}',
+  '.painting .enso{stroke-dashoffset:var(--now);animation:paint var(--n) linear var(--e) 1 both}',
   '@keyframes paint{from{stroke-dashoffset:100}to{stroke-dashoffset:5}}',
   '.glide{animation:glide 52s linear infinite}',
   '@keyframes glide{from{transform:translate(-320px,40px)}to{transform:translate(1900px,-70px)}}',
@@ -135,10 +135,16 @@ function petals(count: number, seed: number, fast: boolean): string {
 
   for (let index = 0; index < count; index += 1) {
     const duration = fast ? 9 + random() * 7 : 18 + random() * 16
+    const offset = random() * duration
+    const dx = -420 + random() * 180
+    const spin = 200 + random() * 500
+    const rest = along(offset, duration)
+    // The petal's place is on the group around it: its own transform is the fall, which the animation takes over.
     out +=
-      `<path class="pt s" d="${PETAL}" transform="translate(${num(200 + random() * 1500)} 0) scale(${num(0.8 + random() * 0.9, 2)})" ` +
-      `opacity="${num(0.45 + random() * 0.4, 2)}" style="--d:${num(duration)}s;--o:${num(random() * duration)};` +
-      `--x:${num(-420 + random() * 180)}px;--r:${num(200 + random() * 500)}deg"/>`
+      `<g transform="translate(${num(200 + random() * 1500)} 0) scale(${num(0.8 + random() * 0.9, 2)})">` +
+      `<path class="pt s" d="${PETAL}" opacity="${num(0.45 + random() * 0.4, 2)}" ` +
+      `transform="translate(${num(dx * rest)} ${num(-70 + 1160 * rest)}) rotate(${num(spin * rest)})" ` +
+      `style="--d:${num(duration)}s;--o:${num(offset)};--x:${num(dx)}px;--r:${num(spin)}deg"/></g>`
   }
 
   return `<g style="fill:var(--petal)">${out}</g>`
@@ -157,7 +163,12 @@ function ring(view: EnsoView): string {
   // How far into the sitting the scene was drawn: the brush carries on from there by itself.
   const elapsed = Math.min(view.focus.seconds, (((view.at - view.focus.startedAt) % 86_400) + 86_400) % 86_400)
 
-  return `${base} class="painting" style="stroke:var(--ink);--n:${num(view.focus.seconds)}s;--e:-${num(elapsed, 2)}s">${strokes}</g>`
+  const unpainted = num(100 - 95 * (view.focus.seconds > 0 ? elapsed / view.focus.seconds : 1), 2)
+
+  return (
+    `${base} class="painting" style="stroke:var(--ink);--n:${num(view.focus.seconds)}s;--e:-${num(elapsed, 2)}s;--now:${unpainted}">` +
+    `${strokes}</g>`
+  )
 }
 
 const SEAL =
@@ -186,8 +197,9 @@ function flourish(): string {
 
   for (let index = 0; index < 26; index += 1) {
     out +=
-      `<path class="f gust" d="${PETAL}" transform="translate(${num(-80 + random() * 500)} ${num(120 + random() * 620)}) scale(${num(0.9 + random(), 2)})" ` +
-      `style="--d:${num(2.6 + random() * 2.4, 2)}s;--w:${num(random() * 1.3, 2)}s;--y:${num(-160 + random() * 420)}px;--r:${num(300 + random() * 600)}deg"/>`
+      `<g transform="translate(${num(-80 + random() * 500)} ${num(120 + random() * 620)}) scale(${num(0.9 + random(), 2)})">` +
+      `<path class="f gust" d="${PETAL}" style="--d:${num(2.6 + random() * 2.4, 2)}s;--w:${num(random() * 1.3, 2)}s;` +
+      `--y:${num(-160 + random() * 420)}px;--r:${num(300 + random() * 600)}deg"/></g>`
   }
 
   return `<g style="fill:var(--petal)">${out}</g>`

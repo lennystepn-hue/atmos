@@ -97,6 +97,9 @@ async function tick($: EngineInterface): Promise<void> {
 
     if (left !== current.left) {
       await update($, sitting, () => ({ ...current, left }))
+      // Draw the scene again each minute, so the circle advances even where the app holds scenes still.
+      const drawn = await read($, view)
+      await update($, view, () => ({ ...drawn, at: secondsOfDay(now) }))
     }
 
     return

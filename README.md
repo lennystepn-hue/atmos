@@ -71,6 +71,15 @@ And each look has a few of its own:
 | Arcade | `/arcade score` shows the board. `/arcade reset` wipes the hi-score. |
 | Ensō | `/enso 25` begins a sitting of 25 minutes (1 to 240). `/enso stop` ends it early. |
 
+## The scene doesn't move?
+
+The desktop app decides whether a mod's scene may animate. It holds every scene still when either of these is true:
+
+- **Hardware acceleration is off in the app.** Look under **Help → Troubleshooting → Disable Hardware Acceleration**. The app also turns it off by itself after repeated graphics crashes. Without it there's no frosted glass either: panels are tinted, not blurred.
+- **Your system asks for less motion**, or the app's own background-animation setting is off.
+
+Atmos is built for that case too. Every scene has a resting frame that is a good moment of the moving one: particles spread through the water, flames standing on the coals, the grid drawn out to the horizon. The scene still changes with the session: the water gets darker, the fire grows and dies down, the sky follows the hour, a cleared stage is written across the sky, and the ensō circle advances once a minute.
+
 ## How it works
 
 A mod can put one SVG behind the conversation, and that SVG runs no script. So each scene is a pure function: the mod keeps a small piece of state (how deep, how hot, what hour, which stage, how far into the sitting), and whenever that state changes it draws the whole scene again as a new SVG string.

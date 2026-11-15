@@ -1,6 +1,6 @@
 // The Abyss scene: one SVG, drawn from how deep the session is and what Claude is doing.
 
-import { frame, num, rng } from './kit'
+import { along, frame, num, rng } from './kit'
 import type { AbyssView, Scheme } from '../types'
 
 // ---------------------------------------------------------------------------
@@ -81,7 +81,7 @@ const CSS = [
   '@keyframes sway{from{transform:rotate(-3.5deg)}to{transform:rotate(3.5deg)}}',
   '.surf{animation:surf 19s ease-in-out infinite alternate}',
   '@keyframes surf{from{transform:translateX(-90px)}to{transform:translateX(90px)}}',
-  '.gl{animation:drift var(--d) ease-in-out infinite alternate}',
+  '.gl{transform-box:fill-box;transform-origin:center;animation:drift var(--d) ease-in-out infinite alternate}',
   '@keyframes drift{from{transform:translate(-70px,-30px) scale(.9)}to{transform:translate(80px,40px) scale(1.15)}}',
   '.p{fill:var(--dot);animation:rise var(--d) linear infinite}',
   '@keyframes rise{from{transform:translate(0,1060px)}to{transform:translate(var(--x),-60px)}}',
@@ -165,9 +165,13 @@ function particles(count: number, seed: number, fast: boolean): string {
     const duration = fast ? 12 + random() * 14 : 34 + random() * 46
     const radius = fast ? 2 + random() * 3.2 : 1.2 + random() * 2.8
     const opacity = fast ? 0.55 + random() * 0.45 : 0.25 + random() * 0.5
+    const offset = random() * duration
+    const drift = -60 + random() * 120
+    const rest = along(offset, duration)
     out +=
       `<circle class="p s" cx="${num(random() * 1600)}" r="${num(radius)}" opacity="${num(opacity, 2)}" ` +
-      `style="--d:${num(duration)}s;--o:${num(random() * duration)};--x:${num(-60 + random() * 120)}px"/>`
+      `transform="translate(${num(drift * rest)} ${num(1060 - 1120 * rest)})" ` +
+      `style="--d:${num(duration)}s;--o:${num(offset)};--x:${num(drift)}px"/>`
   }
 
   return out
@@ -214,7 +218,7 @@ function school(): string {
       `transform="translate(${num(random() * 380)} ${num(random() * 150)}) scale(${num(0.8 + random() * 0.9, 2)})"/>`
   }
 
-  return `<g class="school s" style="fill:var(--sil)" opacity=".5"><g transform="translate(0 230)">${out}</g></g>`
+  return `<g class="school s" transform="translate(540 0)" style="fill:var(--sil)" opacity=".5"><g transform="translate(0 230)">${out}</g></g>`
 }
 
 function kelp(): string {

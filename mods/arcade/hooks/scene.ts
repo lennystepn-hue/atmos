@@ -1,6 +1,6 @@
 // The Arcade scene: a neon grid running to a striped sun, drawn from what Claude is doing.
 
-import { frame, num, rng } from './kit'
+import { along, frame, num, rng, track } from './kit'
 import type { ArcadeView, Scheme } from '../types'
 
 const NIGHT = {
@@ -53,7 +53,7 @@ const CSS = [
   `@keyframes row{0%{transform:translateY(${HORIZON}px) scaleY(.4);opacity:0}14%{opacity:.85}100%{transform:translateY(1010px) scaleY(3.2);opacity:1}}`,
   '.wp{transform-box:fill-box;transform-origin:0 50%;animation:wp var(--d) linear infinite}',
   '@keyframes wp{0%{transform:translateX(0) scaleX(.2);opacity:0}22%{opacity:.75}100%{transform:translateX(640px) scaleX(2.4);opacity:0}}',
-  '.m-done .clear{animation:clear 4.4s ease-out .2s 1 both}',
+  '.m-done .clear{opacity:1;animation:clear 4.4s ease-out .2s 1 both}',
   '@keyframes clear{0%{opacity:0;transform:scale(.84)}11%{opacity:1;transform:scale(1)}78%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.04)}}',
   '.m-done .bit{animation:bit var(--d) ease-in var(--w) 1 both}',
   '@keyframes bit{0%{transform:translateY(0) rotate(0);opacity:0}10%{opacity:1}100%{transform:translateY(560px) rotate(300deg);opacity:0}}',
@@ -124,7 +124,13 @@ function floor(): string {
   let rows = ''
 
   for (let index = 0; index < 14; index += 1) {
-    rows += `<rect class="row s" x="0" y="-1" width="1600" height="2" style="--o:${num((index * 5.6) / 14, 2)}"/>`
+    const rest = index / 14
+    // At rest the lines stand where running ones would be: bunched at the horizon, wide apart up close.
+    const near = rest ** 2.2
+    rows +=
+      `<rect class="row s" x="0" y="-1" width="1600" height="2" opacity="${num(Math.min(1, 0.25 + rest * 2), 2)}" ` +
+      `transform="translate(0 ${num(HORIZON + 410 * near)}) scale(1 ${num(0.4 + 2.8 * near, 2)})" ` +
+      `style="--o:${num(rest * 5.6, 2)}"/>`
   }
 
   return (
@@ -137,6 +143,8 @@ function floor(): string {
   )
 }
 
+const STREAK_FADE = [[0, 0], [0.22, 0.75], [1, 0]] as const
+
 function working(): string {
   const random = rng(211)
   let out = ''
@@ -145,9 +153,13 @@ function working(): string {
   for (let index = 0; index < 34; index += 1) {
     const angle = num(-172 + random() * 164)
     const duration = num(1.4 + random() * 1.6, 2)
+    const offset = num(random() * duration, 2)
+    const rest = along(offset, duration)
     out +=
       `<g transform="rotate(${angle} ${SUN.x} ${SUN.y})"><rect class="wp s" x="${num(SUN.x + 250 + random() * 60)}" y="${SUN.y - 1.5}" ` +
-      `width="${num(60 + random() * 80)}" height="3" style="--d:${duration}s;--o:${num(random() * duration, 2)}"/></g>`
+      `width="${num(60 + random() * 80)}" height="3" opacity="${num(track(rest, STREAK_FADE), 2)}" ` +
+      `transform="translate(${num(640 * rest)} 0) scale(${num(0.2 + 2.2 * rest, 2)} 1)" ` +
+      `style="--d:${duration}s;--o:${offset}"/></g>`
   }
 
   return `<g class="w" style="fill:var(--neon)">${out}</g>`

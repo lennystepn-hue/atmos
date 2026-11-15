@@ -1,6 +1,6 @@
 // The Forge scene: a smithy fire, drawn from how hot it is and what Claude is doing.
 
-import { frame, num, rng } from './kit'
+import { along, frame, num, rng, track } from './kit'
 import type { ForgeView, Scheme } from '../types'
 
 /** The fire's five levels, coldest first. */
@@ -61,8 +61,9 @@ const CSS = [
   '@keyframes fp{0%{transform:translate(0,0) scale(1);opacity:0}8%{opacity:1}70%{opacity:.9}100%{transform:translate(var(--x),var(--y)) scale(.08);opacity:0}}',
   '.em{animation:ember var(--d) ease-in-out infinite alternate}',
   '@keyframes ember{from{opacity:.25}to{opacity:1}}',
-  '.sp{fill:var(--spark);animation:spark var(--d) ease-out infinite}',
+  '.sp{fill:var(--spark);transform-box:fill-box;transform-origin:center;animation:spark var(--d) ease-out infinite}',
   '@keyframes spark{0%{transform:translate(0,0);opacity:0}8%{opacity:1}65%{opacity:.85}100%{transform:translate(var(--x),var(--y));opacity:0}}',
+  '.sm,.steam{transform-box:fill-box;transform-origin:center}',
   '.sm{animation:smoke var(--d) ease-out infinite}',
   '@keyframes smoke{0%{transform:translate(0,0) scale(.5);opacity:0}20%{opacity:.5}100%{transform:translate(var(--x),-760px) scale(2.6);opacity:0}}',
   '.hg{animation:hang var(--d) ease-in-out infinite alternate}',
@@ -103,6 +104,12 @@ const DEFS =
   '<radialGradient id="mist"><stop offset="0" style="stop-color:var(--steam);stop-opacity:.75"/>' +
   '<stop offset="1" style="stop-color:var(--steam);stop-opacity:0"/></radialGradient>'
 
+// How bright a puff, a spark and a wisp of smoke are along their way up, as their keyframes have it.
+const FLAME_FADE = [[0, 0], [0.08, 1], [0.7, 0.9], [1, 0]] as const
+const SPARK_FADE = [[0, 0], [0.08, 1], [0.65, 0.85], [1, 0]] as const
+const SMOKE_FADE = [[0, 0], [0.2, 0.5], [1, 0]] as const
+const STRIKE_FADE = [[0, 0], [0.06, 1], [1, 0]] as const
+
 /** The fire: puffs of heat that rise from the coals in tongues, shrinking as they climb. */
 function flames(level: number): string {
   const count = [0, 0, 150, 230, 310][level] ?? 0
@@ -120,10 +127,15 @@ function flames(level: number): string {
     const tongue = tongues[index % tongues.length] ?? { x: 800, strength: 1 }
     const spread = (random() + random() - 1) * 34
     const duration = 0.9 + random() * 1.1
+    const offset = random() * duration
+    const sway = -30 + random() * 60
+    const rise = -reach * tongue.strength * (0.5 + random() * 0.6)
+    const rest = along(offset, duration)
     out +=
       `<circle class="fp s" cx="${num(tongue.x + spread)}" cy="${num(962 + random() * 22)}" r="${num(34 + random() * 30)}" fill="url(#fp)" ` +
-      `style="--d:${num(duration, 2)}s;--o:${num(random() * duration, 2)};--x:${num(-30 + random() * 60)}px;` +
-      `--y:${num(-reach * tongue.strength * (0.5 + random() * 0.6))}px"/>`
+      `opacity="${num(track(rest, FLAME_FADE), 2)}" ` +
+      `transform="translate(${num(sway * rest)} ${num(rise * rest)}) scale(${num(1 - 0.92 * rest, 2)})" ` +
+      `style="--d:${num(duration, 2)}s;--o:${num(offset, 2)};--x:${num(sway)}px;--y:${num(rise)}px"/>`
   }
 
   return count === 0 ? '' : `<g filter="url(#fire)">${out}</g>`
@@ -155,9 +167,14 @@ function sparks(level: number): string {
 
   for (let index = 0; index < count; index += 1) {
     const duration = 3.2 + random() * 6
+    const offset = random() * duration
+    const dx = -150 + random() * 300
+    const dy = -260 - random() * 620
+    const rest = along(offset, duration)
     out +=
       `<circle class="sp s" cx="${num(40 + random() * 1520)}" cy="${num(900 + random() * 60)}" r="${num(1.4 + random() * 2.6)}" ` +
-      `style="--d:${num(duration, 2)}s;--o:${num(random() * duration, 2)};--x:${num(-150 + random() * 300)}px;--y:${num(-260 - random() * 620)}px"/>`
+      `opacity="${num(track(rest, SPARK_FADE), 2)}" transform="translate(${num(dx * rest)} ${num(dy * rest)})" ` +
+      `style="--d:${num(duration, 2)}s;--o:${num(offset, 2)};--x:${num(dx)}px;--y:${num(dy)}px"/>`
   }
 
   return out
@@ -171,9 +188,14 @@ function smoke(level: number): string {
 
   for (let index = 0; index < count; index += 1) {
     const duration = 11 + random() * 9
+    const offset = random() * duration
+    const dx = -120 + random() * 240
+    const rest = along(offset, duration)
     out +=
       `<circle class="sm s" cx="${num(160 + random() * 1280)}" cy="930" r="${num(46 + random() * 40)}" fill="url(#puff)" ` +
-      `style="--d:${num(duration, 1)}s;--o:${num(random() * duration, 1)};--x:${num(-120 + random() * 240)}px"/>`
+      `opacity="${num(track(rest, SMOKE_FADE), 2)}" ` +
+      `transform="translate(${num(dx * rest)} ${num(-760 * rest)}) scale(${num(0.5 + 2.1 * rest, 2)})" ` +
+      `style="--d:${num(duration, 1)}s;--o:${num(offset, 1)};--x:${num(dx)}px"/>`
   }
 
   return out
@@ -210,11 +232,16 @@ function working(): string {
   // Work on the anvil: a steady spray of sparks, never a beat.
   for (let index = 0; index < 16; index += 1) {
     const duration = 1.6 + random() * 1.8
+    const offset = random() * duration
     const angle = -Math.PI * (0.08 + random() * 0.84)
     const reach = 150 + random() * 260
+    const dx = Math.cos(angle) * reach
+    const dy = Math.sin(angle) * reach
+    const rest = along(offset, duration)
     strike +=
-      `<circle class="sp hit s" cx="1378" cy="712" r="${num(2 + random() * 2.6)}" ` +
-      `style="--d:${num(duration, 2)}s;--x:${num(Math.cos(angle) * reach)}px;--y:${num(Math.sin(angle) * reach)}px;--o:${num(random() * duration, 2)}"/>`
+      `<circle class="sp hit s" cx="1378" cy="712" r="${num(2 + random() * 2.6)}" opacity="${num(track(rest, STRIKE_FADE), 2)}" ` +
+      `transform="translate(${num(dx * rest)} ${num(dy * rest)}) scale(${num(0.4 + 0.6 * rest, 2)})" ` +
+      `style="--d:${num(duration, 2)}s;--o:${num(offset, 2)};--x:${num(dx)}px;--y:${num(dy)}px"/>`
   }
 
   return (

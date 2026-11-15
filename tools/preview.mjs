@@ -3,6 +3,7 @@
 //
 //   npm run preview            every look
 //   npm run preview -- abyss   one look
+//   npm run preview -- --still as the app draws them when it holds scenes still
 
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
@@ -46,7 +47,20 @@ const STATES = {
   ],
 }
 
-const only = process.argv.slice(2)
+const only = process.argv.slice(2).filter(word => !word.startsWith('--'))
+
+// The desktop app takes the motion out of a scene when the person asks for less motion
+// or the app runs without graphics acceleration. --still does to each drawing what the
+// app does then, so the resting frame can be looked at.
+const still = process.argv.includes('--still')
+const FREEZE = '<style>*{animation:none!important;transition:none!important}</style>'
+const IMPORTANT = /((?:animation|transition)[a-z-]{0,32}s{0,64}:[^;"'{}<>]{0,400}?)!s{0,64}important/gi
+
+function held(svg) {
+  const end = svg.indexOf('>') + 1
+
+  return svg.slice(0, end).replace(IMPORTANT, '$1') + FREEZE + svg.slice(end).replace(IMPORTANT, '$1')
+}
 const names = Object.keys(STATES).filter(name => (only.length === 0 || only.includes(name)) && existsSync(join(ROOT, 'mods', name, 'hooks', 'scene.ts')))
 
 mkdirSync(join(OUT, 'scenes'), { recursive: true })
@@ -104,7 +118,7 @@ for (const name of names) {
 
   for (const [label, view] of STATES[name]) {
     for (const scheme of ['dark', 'light']) {
-      const svg = scene.drawScene(view, scheme)
+      const svg = still ? held(scene.drawScene(view, scheme)) : scene.drawScene(view, scheme)
       const file = `${name}-${slug(label)}-${scheme}.svg`
       writeFileSync(join(OUT, 'scenes', file), svg)
       shots += windowOf(file, label, definition[scheme].gray.anchors, definition.roles.accent, scheme)
@@ -155,7 +169,7 @@ const html = `<!doctype html>
   .prompt em { width: 1.7em; height: 1.7em; border-radius: 50%; background: var(--accent); }
 </style>
 <h1>Atmos</h1>
-<p class="lead">${total} drawings of ${names.length} looks. Each scene is one animated SVG, shown here behind a mock of the app's frosted panels at the default glass (56% opaque, blur 9).</p>
+<p class="lead">${total} drawings of ${names.length} looks${still ? ', held still as the app draws them without motion' : ''}. Each scene is one animated SVG, shown here behind a mock of the app's frosted panels at the default glass (56% opaque, blur 9).</p>
 ${sections}
 </html>
 `

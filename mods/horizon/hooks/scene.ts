@@ -1,6 +1,6 @@
 // The Horizon scene: a mountain sky, drawn from the local time of day and what Claude is doing.
 
-import { frame, num, rng } from './kit'
+import { along, frame, num, rng } from './kit'
 import type { HorizonView, Scheme } from '../types'
 
 // ---------------------------------------------------------------------------
@@ -204,8 +204,10 @@ function clouds(): string {
     const y = num(110 + random() * 330)
     const size = 0.7 + random() * 0.9
     const duration = num(190 + random() * 120)
+    const offset = num(random() * duration)
     out +=
-      `<g class="cl s" style="--d:${duration}s;--o:${num(random() * duration)}" opacity="${num(0.55 + random() * 0.4, 2)}">` +
+      `<g class="cl s" transform="translate(${num(-520 + 2580 * along(offset, duration))} 0)" ` +
+      `style="--d:${duration}s;--o:${offset}" opacity="${num(0.55 + random() * 0.4, 2)}">` +
       `<g transform="translate(0 ${y}) scale(${num(size, 2)})">` +
       '<ellipse cx="0" cy="0" rx="150" ry="34"/><ellipse cx="-60" cy="-22" rx="74" ry="34"/>' +
       '<ellipse cx="28" cy="-36" rx="92" ry="46"/><ellipse cx="104" cy="-14" rx="66" ry="28"/></g></g>'
@@ -292,7 +294,7 @@ function flourish(isNight: boolean): string {
   for (let index = 0; index < 9; index += 1) {
     const row = Math.ceil(index / 2)
     const side = index % 2 === 0 ? 1 : -1
-    birds += `<path class="wing" d="M-13-7L0 0L13-7" transform="translate(${-row * 34} ${side * row * 20})"/>`
+    birds += `<g transform="translate(${-row * 34} ${side * row * 20})"><path class="wing" d="M-13-7L0 0L13-7"/></g>`
   }
 
   return (

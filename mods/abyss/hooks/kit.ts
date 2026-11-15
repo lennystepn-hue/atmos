@@ -161,6 +161,35 @@ function customProperties(colors: Record<string, string | number>): string {
     .join(';')
 }
 
+/**
+ * How far along its loop an element rests when the scene can't move, 0 to 1.
+ *
+ * The app draws a scene without motion when the person asks for less motion or the
+ * app runs without graphics acceleration. Each element then stays at the pose its own
+ * `transform` and `opacity` attributes give, which a running animation overrides.
+ * So every looping element is given the pose of one moment of its loop, and the
+ * scene at rest is a good frame of the scene in motion.
+ */
+export function along(offset: number, duration: number): number {
+  return duration > 0 ? (((offset % duration) + duration) % duration) / duration : 0
+}
+
+/** The value at `at` (0 to 1) of a track of [moment, value] stops, read as keyframes are. */
+export function track(at: number, stops: readonly (readonly [number, number])[]): number {
+  let before = stops[0] ?? [0, 0]
+
+  for (const stop of stops) {
+    if (stop[0] >= at) {
+      const span = stop[0] - before[0]
+
+      return span <= 0 ? stop[1] : before[1] + ((stop[1] - before[1]) * (at - before[0])) / span
+    }
+    before = stop
+  }
+
+  return before[1]
+}
+
 // What every scene's stylesheet ends with.
 //  .s  a loop synced to the clock: it starts as far in as the day is old (plus
 //      its own offset --o), so a scene drawn again picks up where the last one was.
@@ -170,11 +199,11 @@ function customProperties(colors: Record<string, string | number>): string {
 const KIT_CSS = [
   '.s{animation-delay:calc((var(--t) + var(--o,0))*-1s)!important}',
   '.w,.f{opacity:0}',
-  '.m-working .w{animation:atm-in 1.8s ease-out both}',
+  '.m-working .w{opacity:1;animation:atm-in 1.8s ease-out both}',
   '.m-done .w{animation:atm-out 2.6s ease-in both}',
   '@keyframes atm-in{from{opacity:0}to{opacity:1}}',
   '@keyframes atm-out{0%{opacity:1}99%{opacity:0;visibility:visible}100%{opacity:0;visibility:hidden}}',
-  '@media (prefers-reduced-motion:reduce){*{animation:none!important}.m-working .w{opacity:1}}',
+  '@media (prefers-reduced-motion:reduce){*{animation:none!important}}',
 ].join('')
 
 export type Frame = {
