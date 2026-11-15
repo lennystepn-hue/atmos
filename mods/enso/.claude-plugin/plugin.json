@@ -1,0 +1,9 @@
+{
+  "name": "enso",
+  "version": "1.0.0",
+  "description": "An ink-wash garden behind Claude Code with a focus timer you can see: /enso 25 and a brush circle paints itself over 25 minutes. When it closes, the sitting is done.",
+  "author": { "name": "Lenny Enderle" },
+  "keywords": ["theme", "mod", "backdrop", "atmos"],
+  "license": "MIT",
+  "types": "./types/index.d.ts"
+}

@@ -1,0 +1,36 @@
+{
+  "name": "atmos",
+  "owner": {
+    "name": "Lenny Enderle"
+  },
+  "metadata": {
+    "description": "Five living looks for Claude Code on desktop: animated scenes that show you the session."
+  },
+  "plugins": [
+    {
+      "name": "abyss",
+      "source": "./mods/abyss",
+      "description": "A living ocean behind Claude Code: your context window is the depth. The longer the session, the deeper and darker the water. /compact to surface."
+    },
+    {
+      "name": "forge",
+      "source": "./mods/forge",
+      "description": "A smithy fire behind Claude Code that you keep alive: every prompt is a strike that feeds it, and it burns down to embers when you drift off."
+    },
+    {
+      "name": "horizon",
+      "source": "./mods/horizon",
+      "description": "A mountain sky behind Claude Code that keeps your local time: dawn, noon, dusk, then stars and northern lights. It tells you when to take a break and when to call it a night."
+    },
+    {
+      "name": "arcade",
+      "source": "./mods/arcade",
+      "description": "A neon grid behind Claude Code that keeps score: every tool call scores, clean runs build a combo, every turn is a stage, and your hi-score survives the session."
+    },
+    {
+      "name": "enso",
+      "source": "./mods/enso",
+      "description": "An ink-wash garden behind Claude Code with a focus timer you can see: /enso 25 and a brush circle paints itself over 25 minutes. When it closes, the sitting is done."
+    }
+  ]
+}

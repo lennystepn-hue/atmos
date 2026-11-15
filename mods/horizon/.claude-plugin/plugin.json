@@ -1,0 +1,9 @@
+{
+  "name": "horizon",
+  "version": "1.0.0",
+  "description": "A mountain sky behind Claude Code that keeps your local time: dawn, noon, dusk, then stars and northern lights. It tells you when to take a break and when to call it a night.",
+  "author": { "name": "Lenny Enderle" },
+  "keywords": ["theme", "mod", "backdrop", "atmos"],
+  "license": "MIT",
+  "types": "./types/index.d.ts"
+}

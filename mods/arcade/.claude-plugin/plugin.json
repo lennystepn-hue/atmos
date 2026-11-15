@@ -1,0 +1,9 @@
+{
+  "name": "arcade",
+  "version": "1.0.0",
+  "description": "A neon grid behind Claude Code that keeps score: every tool call scores, clean runs build a combo, every turn is a stage, and your hi-score survives the session.",
+  "author": { "name": "Lenny Enderle" },
+  "keywords": ["theme", "mod", "backdrop", "atmos"],
+  "license": "MIT",
+  "types": "./types/index.d.ts"
+}

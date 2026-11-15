@@ -1,0 +1,14 @@
+{
+  "name": "atmos",
+  "private": true,
+  "type": "module",
+  "description": "Five living looks for Claude Code on desktop",
+  "scripts": {
+    "palettes": "node tools/palettes.mjs",
+    "preview": "node tools/preview.mjs",
+    "sync": "node tools/sync.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0"
+  }
+}

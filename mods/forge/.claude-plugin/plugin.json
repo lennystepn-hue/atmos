@@ -1,0 +1,9 @@
+{
+  "name": "forge",
+  "version": "1.0.0",
+  "description": "A smithy fire behind Claude Code that you keep alive: every prompt is a strike that feeds it, and it burns down to embers when you drift off.",
+  "author": { "name": "Lenny Enderle" },
+  "keywords": ["theme", "mod", "backdrop", "atmos"],
+  "license": "MIT",
+  "types": "./types/index.d.ts"
+}

@@ -1,0 +1,16 @@
+{
+  "name": "abyss",
+  "version": "1.0.0",
+  "description": "A living ocean behind Claude Code: your context window is the depth. The longer the session, the deeper and darker the water. /compact to surface.",
+  "author": {
+    "name": "Lenny Enderle"
+  },
+  "keywords": [
+    "theme",
+    "mod",
+    "backdrop",
+    "atmos"
+  ],
+  "license": "MIT",
+  "types": "./types/index.d.ts"
+}
